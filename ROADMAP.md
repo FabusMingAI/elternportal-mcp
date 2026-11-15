@@ -12,13 +12,13 @@
 
 - More explicit empty-page recognizers and school-layout fixtures.
 - Extract shared parser fixes into an upstream library so HA and MCP benefit.
-- Optional archive, cache cleanup and export controls.
-- Optional structured task suggestions with evidence, reviewed by the user.
+- Configurable archive retention, cache cleanup and bulk export controls.
+- Additional evidence checks and real-school analysis fixtures.
 - More document areas and class-teacher communication reads.
 - MFA after inspecting its actual authorized login flow.
 
 ## Requires separate investigation
 
 Sick-note submission, leave applications, messages, voting and appointment
-bookings. These are not included or promised in v0.1.0. There is no remote HTTP
+bookings. These are not included or promised in v0.2.0. There is no remote HTTP
 hosting or PyPI publishing workflow in the initial release.

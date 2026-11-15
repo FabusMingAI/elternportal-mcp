@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "elternportal-mcp-bavaria"
-version = "0.1.0"
+version = "0.2.0"
 description = "Local MCP server for Eltern-Portal: children, messages, timetables, calendars and tasks"
 readme = "README.md"
 requires-python = ">=3.13"

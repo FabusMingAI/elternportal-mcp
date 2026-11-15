@@ -4,12 +4,12 @@ A local [Model Context Protocol](https://modelcontextprotocol.io/) server for
 school portals at `SCHOOL.eltern-portal.org`. Built from the portal experience and
 HTML parsers in [Eltern Portal Manager Bavaria for Home Assistant](https://github.com/FabusMingAI/ha-schulmanager).
 
-**20 tools · multiple schools and children · local tasks · persistent cache · no extra AI API key**
+**42 tools · multiple schools and children · local tasks · persistent cache · no extra AI API key**
 
 [![Tests](https://github.com/FabusMingAI/elternportal-mcp/actions/workflows/tests.yml/badge.svg)](https://github.com/FabusMingAI/elternportal-mcp/actions/workflows/tests.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Version **0.1.0 is an initial community release**. The demo, MCP protocol and
+Version **0.2.0 is a community preview**. The demo, MCP protocol and
 fixture-based portal flows are tested automatically. This standalone server has
 not yet been validated with a real school account. Availability and layouts vary
 by school; MFA is not implemented. This is an unofficial project, unaffiliated
@@ -29,10 +29,10 @@ Deutsch: [Anleitung und Einrichtung](docs/DEUTSCH.md).
 | Documents | Explicitly approved PDF downloads; local text extraction, pagination and search |
 | Organization | Local tasks, EUR payment amounts, deadlines, comments and processing states |
 | Reliability | SQLite persistence, per-section fetch status, retained stale data and cache age |
-| MCP | 20 annotated tools, a usage resource and two review/briefing prompts |
+| MCP | 42 annotated tools, a usage resource and two review/briefing prompts |
 
 No portal messages, sick notes, votes, bookings or payments are submitted. Local
-task states do not change the school portal. No background reminders are sent.
+task states do not change the school portal. Opt-in background polling, reminders and morning briefings are available; push/voice delivery uses explicitly configured Home Assistant services.
 
 ## Try it without an account
 
@@ -123,11 +123,16 @@ The server does not silently retry downloads. Check the portal before retrying.
 If receipt confirmation is unacceptable, leave downloads disabled and open the
 document manually in the portal. Existing cached text can still be read.
 
-PDFs are limited to 25 MiB, parsed in a time-limited subprocess and not kept as
-files. Up to 50 pages / 200,000 characters are extracted; truncation is reported.
+Attachments are limited to 25 MiB. Explicit downloads preserve original files per child/school year unless `store_original_attachments=false`; PDFs are parsed in a time-limited subprocess. Up to 50 pages / 200,000 characters are extracted; truncation is reported.
 Scanned/image-only PDFs are marked `ocr_required`; OCR is not included.
 On POSIX the worker additionally uses CPU and memory limits; Windows uses the
 subprocess timeout and input/output bounds. This is not an operating-system sandbox.
+
+## Organization, analysis and HA parity
+
+Version 0.2 adds automatic portal tasks, evidence-backed analysis, translations, local read/unread state, inbox/event archive, snoozing, a unified calendar with ICS export, daily lesson overlays, statistics, a family overview, change alerts and original attachments. See the complete [HA feature comparison](docs/HA_PARITY.md) and [optional bridge / background setup](docs/HA_BRIDGE.md).
+
+The original tools below remain available. Additional tools are documented in the comparison.
 
 ## Tools
 
@@ -153,21 +158,20 @@ task values, not accounting data fetched from school. Use `clear_due` or
   Child selection and subsequent requests stay together. TLS verification is enabled.
 - The default cache is 15 minutes. Refresh attempts are limited to once a minute
   per school per process. Request timeout defaults to 30 seconds; a whole refresh
-  is limited to five minutes. There is no background polling service.
+  is limited to five minutes. Background polling is opt-in; use `background_enabled=true` and keep the MCP process running, or run `elternportal-mcp --config /path/config.json --worker`.
 - A failed full refresh preserves the prior snapshot and marks it stale. Failed
   individual sections retain prior data with `status=unavailable`, `retained=true`
   and their previous `fetched_at`. Always inspect both source and section status.
 - `status=ok` means the last fetch/parse succeeded; it is not proof that every
   feature of a school's portal is supported. Some HTML differences remain possible.
-- A successful empty section replaces prior records. Historical versions and
-  records outside the current snapshot are not an archive. Local tasks persist.
+- A successful empty section replaces prior records. Inbox items remain locally searchable after leaving the current snapshot. Read/status/archive state, analyses and local tasks persist; a bounded change log records edits.
 - Class-register/homework uses a window from today through four days ahead and
   especially needs real-school testing. No class-teacher messaging or student-portal support.
 - MFA, document libraries, booking, voting, leave applications and other portal
   writes are not implemented. Supported read areas vary with school permissions.
 - The portal has no documented public API used by this project. Its web pages and
   internal endpoints may change. Use only your authorized account.
-- The server calls no external AI provider. Your MCP client may send returned
+- Local rules require no AI provider. Explicit model analysis uses client sampling or the optional HA AI Task provider; opt-in automatic HA analysis can do so in the background. Your MCP client may send returned
   school data to its configured model provider. Treat all portal content as
   untrusted data; tool annotations are hints and do not replace client consent.
 

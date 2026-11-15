@@ -5,7 +5,7 @@ unter `SCHULE.eltern-portal.org`. Er baut auf unserer Home-Assistant-Integration
 [Eltern Portal Manager Bavaria](https://github.com/FabusMingAI/ha-schulmanager)
 und deren bewährten Parsern auf. Home Assistant wird dafür nicht benötigt.
 
-**Erste Community-Version 0.1.0:** Demo, MCP-Protokoll und simulierte Portalabläufe
+**Erste Community-Version 0.2.0:** Demo, MCP-Protokoll und simulierte Portalabläufe
 werden automatisch getestet. Dieser eigenständige MCP-Server ist noch nicht mit
 einem echten Schulzugang geprüft. Funktionen hängen von den Freischaltungen der
 Schule ab. Zwei-Faktor-Anmeldung wird noch nicht unterstützt.
@@ -84,7 +84,7 @@ ID auswählen. Beispielaufträge:
 
 Aufgaben und Bearbeitungszustände gelten nur lokal im MCP-Server. „Erledigt“
 übermittelt nichts an die Schule, bestätigt keinen Elternbrief und bezahlt keine
-Rechnung. Der Server versendet keine Hintergrund-Erinnerungen.
+Rechnung. Hintergrund-Erinnerungen sind optional aktivierbar; Push und Sprache nutzen explizit konfigurierte HA-Dienste.
 
 ## PDF-Abruf und Empfangsbestätigung
 
@@ -99,8 +99,7 @@ setzen und den Server neu starten. Zusätzlich muss der konkrete Toolaufruf
 zugestimmt hast. Ein bloßer Wunsch, einen Brief zu suchen, ist keine solche Zustimmung.
 
 Die Texte werden lokal extrahiert und gespeichert. `get_cached_document` liest
-sie anschließend ohne Portalaufruf. Die PDF-Datei selbst wird nicht dauerhaft
-abgelegt. Bild-PDFs benötigen OCR, die diese Version nicht enthält.
+sie anschließend ohne Portalaufruf. Originaldateien werden bei ausdrücklich freigegebenen Downloads pro Kind und Schuljahr abgelegt; mit `store_original_attachments=false` lässt sich dies abschalten. Bild-PDFs benötigen OCR, die diese Version nicht enthält.
 
 Bei einem Fehler kann der Empfang bereits bestätigt worden sein, bevor die
 Textextraktion scheiterte. Vor einem erneuten Versuch im Portal nachsehen.
@@ -109,13 +108,12 @@ Textextraktion scheiterte. Vor einem erneuten Versuch im Portal nachsehen.
 
 Normalerweise werden Daten bis zu 15 Minuten aus dem lokalen Cache gelesen.
 Eine ausdrückliche Aktualisierung ist höchstens einmal pro Minute und Schule
-im laufenden Prozess möglich. Der Server fragt nicht selbständig im Hintergrund ab.
+im laufenden Prozess möglich. Hintergrundabrufe sind mit `background_enabled=true` und einem laufenden MCP-Prozess oder `--worker` möglich.
 
 Bei Fehlern bleiben bekannte Daten erhalten. Sowohl `source.stale` als auch
 `section.status`, `section.retained` und `section.fetched_at` beachten:
 Einzelne Bereiche können veraltet sein, während andere gerade aktualisiert wurden.
-Ein erfolgreicher Abruf ohne Einträge ersetzt die vorherigen Einträge; dies ist
-kein vollständiges historisches Archiv.
+Ein erfolgreicher Abruf ohne Einträge ersetzt die vorherigen Einträge; frühere Mitteilungen bleiben jedoch im lokalen Archiv verfügbar.
 
 Die SQLite-Datenbank enthält unverschlüsselte Schultexte, extrahierte PDF-Texte
 und lokale Aufgaben. Standardpfad ist `~/.local/share/elternportal-mcp`, für die
@@ -133,3 +131,7 @@ HTML-Seite können persönliche IDs, CSRF-Werte oder Dateizugänge enthalten.
 
 Weitere Informationen: [README](../README.md), [Roadmap](../ROADMAP.md),
 [Datenschutz und Sicherheit](../SECURITY.md).
+
+## Neu in 0.2.0
+
+[Funktionsvergleich mit HA](HA_PARITY.md) und [Einrichtung von HA-Brücke und Hintergrundbetrieb](HA_BRIDGE.md): automatische Aufgaben, Auswertungen mit Belegen, Mehrsprachigkeit, Gelesen-Status, Archive, Wiedervorlage, Kalenderexport, Tagespläne, Statistiken und Familienübersicht.

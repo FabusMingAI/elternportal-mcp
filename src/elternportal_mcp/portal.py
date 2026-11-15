@@ -16,6 +16,7 @@ from bs4 import BeautifulSoup
 from .config import School, Settings
 from .storage import now
 from .vendor.parsers import PortalParsers, parse_teachers, portal_appointment
+from .vendor.timetable import parse_course_registrations
 
 MAX_PAGE_BYTES = 4 * 1024 * 1024
 MAX_DOCUMENT_BYTES = 25 * 1024 * 1024
@@ -156,7 +157,7 @@ class Portal(PortalParsers):
             letter_threshold=-settings.lookback_days,
             message_threshold=-settings.lookback_days,
             poll_threshold=-settings.lookback_days,
-            sicknote_threshold=-settings.lookback_days,
+            sicknote_threshold=-max(settings.lookback_days, 366),
         )
         # Five school days are fetched on demand as part of a refresh.
         self.set_option_register(register_start_min=0, register_start_max=4)
@@ -198,7 +199,7 @@ class PortalBackend:
         async with aiohttp.ClientSession(
             timeout=timeout,
             headers={
-                "User-Agent": "elternportal-mcp-bavaria/0.1.0",
+                "User-Agent": "elternportal-mcp-bavaria/0.2.0",
             },
         ) as session:
             http = PortalHTTP(session, f"https://{school.school}.eltern-portal.org/")
@@ -233,6 +234,17 @@ class PortalBackend:
                         raise
                     except Exception as error:
                         statuses[name] = {"status": "unavailable", "error": error_code(error)}
+                registrations = None
+                if suffix != "demo":
+                    try:
+                        async with http.get(
+                            urljoin(api.base_url, "/buchungen/intensivierungskurse")
+                        ) as response:
+                            registrations = parse_course_registrations(await response.text())
+                    except AuthenticationRequired:
+                        raise
+                    except Exception:
+                        pass  # Optional existing registrations, never submit the form.
                 items = []
                 # Failed sections never accidentally expose partially parsed records.
                 groups = {"letter": "letters", "poll": "polls"}
@@ -298,6 +310,7 @@ class PortalBackend:
                         "student_id": student.student_id,
                         "name": student.fullname,
                         "class_name": student.classname,
+                        "course_registrations": registrations,
                         "sections": statuses,
                         "items": items,
                         "appointments": appointments,
@@ -335,7 +348,13 @@ class PortalBackend:
             )
 
     async def download(
-        self, school: School, child: dict, item_id: str, index: int, kind: str
+        self,
+        school: School,
+        child: dict,
+        item_id: str,
+        index: int,
+        kind: str,
+        pdf_only: bool = True,
     ) -> bytes:
         # Re-login and rediscover the attachment in the selected child's fresh page;
         # never trust a cached CSRF link or an arbitrary URL supplied by an MCP caller.
@@ -354,6 +373,8 @@ class PortalBackend:
                 raise PortalError("attachment_not_found")
             url = safe_url(api.base_url, item.attachments[index].href)
             async with http.get(url, document=True) as response:
-                if not response.data.startswith(b"%PDF-"):
+                if pdf_only and not response.data.startswith(b"%PDF-"):
                     raise PortalError("attachment_is_not_pdf")
+                if response.data.lstrip().startswith((b"<html", b"<!DOCTYPE html")):
+                    raise PortalError("attachment_returned_html")
                 return response.data

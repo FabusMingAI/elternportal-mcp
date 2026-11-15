@@ -31,7 +31,12 @@ class Store:
             CREATE TABLE IF NOT EXISTS documents (key TEXT PRIMARY KEY, payload TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS tasks (id TEXT PRIMARY KEY, payload TEXT NOT NULL);
             CREATE TABLE IF NOT EXISTS item_states (id TEXT PRIMARY KEY, payload TEXT NOT NULL);
-            PRAGMA user_version = 1;
+            CREATE TABLE IF NOT EXISTS history (id TEXT PRIMARY KEY, payload TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS analyses (id TEXT PRIMARY KEY, payload TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS event_states (id TEXT PRIMARY KEY, payload TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS delivery (id TEXT PRIMARY KEY, payload TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS metadata (id TEXT PRIMARY KEY, payload TEXT NOT NULL);
+            PRAGMA user_version = 2;
         """)
 
     def close(self):
@@ -44,7 +49,13 @@ class Store:
 
     @staticmethod
     def _column(table: str) -> str:
-        columns = {"snapshots": "school", "documents": "key", "tasks": "id", "item_states": "id"}
+        columns = {
+            "snapshots": "school",
+            "documents": "key",
+            "tasks": "id",
+            "item_states": "id",
+            **dict.fromkeys(("history", "analyses", "event_states", "delivery", "metadata"), "id"),
+        }
         if table not in columns:
             raise ValueError("Unknown storage table")
         return columns[table]
@@ -77,3 +88,26 @@ class Store:
         }
         self.put("tasks", task["id"], task)
         return task
+
+    def records(self, table: str) -> list[dict]:
+        self._column(table)
+        return [json.loads(row[0]) for row in self.db.execute(f"SELECT payload FROM {table}")]
+
+    def claim_worker(self, owner: str, expires: str) -> bool:
+        with self.db:
+            self.db.execute("BEGIN IMMEDIATE")
+            existing = self.get("metadata", "worker_lease")
+            if existing and existing["owner"] != owner and existing["expires"] > now():
+                return False
+            self.db.execute(
+                "INSERT OR REPLACE INTO metadata VALUES (?,?)",
+                ("worker_lease", json.dumps({"owner": owner, "expires": expires})),
+            )
+        return True
+
+    def release_worker(self, owner: str):
+        with self.db:
+            self.db.execute("BEGIN IMMEDIATE")
+            current = self.get("metadata", "worker_lease")
+            if current and current["owner"] == owner:
+                self.db.execute("DELETE FROM metadata WHERE id = 'worker_lease'")

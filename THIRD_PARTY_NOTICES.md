@@ -2,9 +2,10 @@
 
 ## Adapted Home Assistant portal parsers
 
-`src/elternportal_mcp/vendor/parsers.py` and `vendor/classes.py` contain code
+`src/elternportal_mcp/vendor/parsers.py` and `vendor/classes.py`, `vendor/timetable.py`, `vendor/webuntis.py`,
+`vendor/ics.py` and the regression tests in `tests/test_timetable_evidence.py` contain code
 adapted from `custom_components/eltern_portal_schulmanager/portal.py` and
-`classes.py` in https://github.com/FabusMingAI/ha-schulmanager at commit
+`classes.py`, `timetable.py`, `webuntis.py`, and `ics.py` in https://github.com/FabusMingAI/ha-schulmanager at commit
 `fc1357caba5677358b70731650932b95140ad586`.
 
 Copyright (c) 2026 FabusMingAI and contributors. Licensed under the MIT License,

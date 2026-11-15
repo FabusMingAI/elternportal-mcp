@@ -15,7 +15,7 @@ async def test_real_stdio_tools_resources_prompts_and_persistent_tasks(tmp_path)
     async with stdio_client(params) as (read, write), ClientSession(read, write) as session:
         await session.initialize()
         tools = (await session.list_tools()).tools
-        assert len(tools) == 20
+        assert len(tools) == 42
         by_name = {t.name: t for t in tools}
         assert by_name["download_pdf"].annotations.readOnlyHint is False
         assert by_name["get_item"].annotations.readOnlyHint is True
@@ -73,4 +73,4 @@ async def test_real_stdio_tools_resources_prompts_and_persistent_tasks(tmp_path)
     async with stdio_client(params) as (read, write), ClientSession(read, write) as session:
         await session.initialize()
         rows = (await session.call_tool("list_tasks")).structuredContent["entries"]
-        assert rows[0]["id"] == task_id and rows[0]["status"] == "done"
+        assert next(r for r in rows if r["id"] == task_id)["status"] == "done"

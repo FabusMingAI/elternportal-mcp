@@ -5,7 +5,7 @@ Otherwise open a minimal issue asking for a private reporting channel, without
 exploit payloads, credentials or school/child data.
 
 The server runs locally over stdio. There is no listening HTTP service, remote
-account system, telemetry or external model API. Passwords are read from named
+account system or telemetry. Local rules require no model API; optional sampling/HA AI can send school text to the selected model provider. Passwords are read from named
 environment variables. Returned data can be sent to the MCP client's model
 provider: the client's privacy settings still matter.
 
@@ -24,6 +24,8 @@ when text extraction subsequently fails. Downloads are disabled by default and
 require per-call acknowledgement in addition to the local configuration setting.
 
 The local SQLite database contains school text, task notes and extracted PDF
-text without application-level encryption. POSIX database files use mode 0600;
+text without application-level encryption. Explicit downloads can also preserve original attachments in the private data directory. POSIX database files use mode 0600;
 protect the containing folder and backups with your operating system. Passwords
 and session cookies are not persisted by the application.
+
+The HA bridge is optional and uses a locally configured token from the environment. REST and WebSocket redirects are blocked. Push/voice targets and calendar entities are configured locally, never arbitrary tool parameters. Background notifications and automatic HA AI processing require separate opt-in settings. Mobile action buttons require the authenticated HA connection and a known local task ID.

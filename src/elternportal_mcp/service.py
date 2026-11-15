@@ -11,7 +11,9 @@ import time
 from datetime import UTC, date, datetime
 
 from . import demo
+from .bridge import Bridge
 from .config import Settings
+from .organizer import Organizer
 from .portal import PortalBackend, error_code
 from .storage import Store, now
 from .vendor.classes import concerns_class
@@ -43,11 +45,13 @@ def page(rows: list, offset: int = 0, limit: int = 50) -> dict:
     }
 
 
-class Service:
+class Service(Organizer):
     def __init__(self, settings: Settings, backend=None):
         self.settings = settings
         self.store = Store(settings.data_dir)
         self.backend = backend or PortalBackend(settings)
+        self.bridge = Bridge(settings.home_assistant)
+        self.notification_lock = asyncio.Lock()
         self.schools = {s.school: s for s in settings.schools}
         self.locks = {s: asyncio.Lock() for s in self.schools}
         self.last_attempt: dict[str, float] = {}
@@ -77,9 +81,11 @@ class Service:
         async with self.locks[code]:
             cached = self.store.get("snapshots", code)
             if cached and not refresh and not self.metadata(cached)["stale"]:
+                self.ingest_snapshot(cached)
                 return cached
             if code in self.last_attempt and time.monotonic() - self.last_attempt[code] < 60:
                 if cached:
+                    self.ingest_snapshot(cached)
                     return cached
                 raise ValueError("Refresh throttled; retry after 60 seconds")
             self.last_attempt[code] = time.monotonic()
@@ -89,6 +95,7 @@ class Service:
                 if cached:
                     fresh = self.merge(cached, fresh)
                 self.store.put("snapshots", code, fresh)
+                self.ingest_snapshot(fresh)
                 self.failures.pop(code, None)
                 return fresh
             except Exception as error:
@@ -161,6 +168,8 @@ class Service:
         until: str | None = None,
         offset: int = 0,
         limit: int = 50,
+        read: bool | None = None,
+        include_archived: bool = False,
     ) -> dict:
         if kind is not None and kind not in KINDS:
             raise ValueError("Unknown item kind")
@@ -169,7 +178,17 @@ class Service:
             raise ValueError("since must be <= until")
         snapshot, child = await self.child(child_id)
         rows = []
-        for item in child["items"]:
+        candidates = (
+            [i for i in self.store.records("history") if i["child_id"] == child_id]
+            if include_archived
+            else child["items"]
+        )
+        for item in candidates:
+            state = self.store.get("item_states", item["id"]) or {"status": "open", "read": False}
+            if not include_archived and state.get("archived"):
+                continue
+            if read is not None and state.get("read", False) != read:
+                continue
             if kind and item["kind"] != kind:
                 continue
             stamp = (item.get("sent") or "")[:10]
@@ -192,6 +211,7 @@ class Service:
                     "attachment_count": len(item["attachments"]),
                     "meta": item["meta"],
                     "local_state": self.store.get("item_states", item["id"]) or {"status": "open"},
+                    "analysis": self.store.get("analyses", item["id"]),
                 }
             )
         rows.sort(key=lambda r: (r["sent"] or "", r["id"]), reverse=True)
@@ -205,7 +225,9 @@ class Service:
         snapshot, child = await self.child(child_id)
         item = next((i for i in child["items"] if i["id"] == item_id), None)
         if item is None:
-            raise ValueError("Item not found for this child")
+            item = self.store.get("history", item_id)
+            if item is None or item["child_id"] != child_id:
+                raise ValueError("Item not found for this child")
         return snapshot, child, item
 
     async def get_item(
@@ -235,12 +257,15 @@ class Service:
             "source": self.metadata(snapshot),
             "section": child["sections"].get(item["kind"]),
             "local_state": self.store.get("item_states", item_id),
+            "analysis": self.store.get("analyses", item_id),
         }
 
     async def section(self, child_id: str, section: str) -> dict:
         snapshot, child = await self.child(child_id)
         return {
-            "data": child[SECTION_FIELDS[section]],
+            "data": self.enriched_timetable(snapshot, child)
+            if section == "lesson"
+            else child[SECTION_FIELDS[section]],
             "section": child["sections"][section],
             "source": self.metadata(snapshot),
         }
@@ -295,6 +320,7 @@ class Service:
                     data = await self.backend.download(
                         self.school(code), child, item_id, attachment_index, item["kind"]
                     )
+                original = self.save_original_attachment(child, item, attachment_index, data)
                 result = await self.extract_pdf(data)
             except Exception:
                 raise ValueError(
@@ -320,6 +346,7 @@ class Service:
             )
             # Force the next fetch to recheck the portal state after the download.
             return {
+                **original,
                 "cached": True,
                 "pages": result["pages"],
                 "ocr_required": result["ocr_required"],

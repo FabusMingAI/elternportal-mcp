@@ -1,4 +1,33 @@
-# Initial release validation
+# Release validation
+
+## 0.2.0 — HA feature parity
+
+Date: 2026-11-15. Local platform: Linux aarch64, Python 3.13.5.
+
+- 76 automated tests passed, including 42-tool stdio discovery.
+- Statement coverage: 86%, including MCP and PDF subprocesses.
+- Real MCP sampling-callback test covers analysis and summary translation.
+- Additional tests cover automatic receipt/poll tasks, read/unread changes,
+  whitespace-stable fingerprints, source-quote validation, preservation of user
+  edits, retained archive contents, preview versus accepted calendar events,
+  ICS dates/times, reminder snoozes, unique sick weekdays and v0.1 database migration.
+- Simulated integration tests cover HA AI/calendar routes, partial push retries,
+  daily deduplication, done/snooze actions, WebSocket authentication, redirect
+  rejection, WebUntis deduplication and stale-source retention.
+- Background tests cover opt-in behavior, independent school failures, shared
+  worker leases, cancellation cleanup and six-hour analysis/translation retries.
+- Original-attachment tests verify child-scoped private file storage without
+  executing or opening the downloaded file.
+- The inherited course-evidence regression tests also run against the adapted
+  HA timetable helpers.
+
+All service responses and model outputs in these tests are synthetic. No real
+portal credentials, HA token, notification recipient or speaker was used. Actual
+school, HA AI, WebUntis and phone/voice compatibility still needs authorized
+real-service validation. The GitHub Actions results provide the separate
+Linux/Windows and Python 3.13/3.14 checks.
+
+## 0.1.0 — initial release
 
 Date: 2026-11-15. Local platform: Linux aarch64, Python 3.13.5.
 
