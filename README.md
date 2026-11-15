@@ -17,6 +17,19 @@ with art soft and more. It is for **Eltern-Portal**, not Schulmanager Online.
 
 Deutsch: [Anleitung und Einrichtung](docs/DEUTSCH.md).
 
+## Connect Claude Desktop or ChatGPT
+
+| Client | Step-by-step guide | Connection |
+|---|---|---|
+| Claude Desktop | [macOS / Windows setup](docs/CLAUDE_DESKTOP.md) (German) | Local stdio process, demo and private school configuration examples |
+| ChatGPT web | [Secure MCP Tunnel setup](docs/CHATGPT.md) (German) | Optional OpenAI tunnel-client; account/workspace and tunnel permissions required |
+
+These are different setup paths. ChatGPT does not consume the Claude Desktop
+JSON file. The project supplies a stdio server, not a public HTTP endpoint or
+a Claude `.mcpb` extension. Each guide includes a demo-first connection check,
+school credentials, troubleshooting and an explicit validation status. The
+ChatGPT tunnel/GUI flow has not yet been end-to-end verified for this project.
+
 ## What it does
 
 | Area | Features |
@@ -52,6 +65,9 @@ network requests. Its data directory is separate from the real configuration.
 Set `ELTERNPORTAL_DEMO_DATA_DIR` to override it.
 
 Generic MCP client configuration:
+
+For concrete application steps use the [Claude Desktop guide](docs/CLAUDE_DESKTOP.md)
+or the separate [ChatGPT guide](docs/CHATGPT.md).
 
 ```json
 {

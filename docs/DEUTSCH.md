@@ -28,6 +28,18 @@ abgerufene Schuldaten allerdings an seinen Modellanbieter übertragen.
 
 ## Installation und Demo
 
+Für die vollständige Einrichtung im gewünschten Client:
+
+- **[Claude Desktop: macOS und Windows](CLAUDE_DESKTOP.md)** — lokale Verbindung,
+  vier JSON-Vorlagen, zuerst Demo, danach Schulzugang.
+- **[ChatGPT: Secure MCP Tunnel](CHATGPT.md)** — gesonderte Tunnel-Verbindung mit
+  Konto-/Berechtigungsprüfung, Demo, Schulzugang und Fehlersuche.
+
+Die JSON-Datei für Claude ist keine ChatGPT-Konfiguration. Der Tunnelweg braucht
+zusätzlich die dort beschriebenen OpenAI-Zugänge; hierfür gilt die allgemeine
+Aussage „kein zusätzlicher KI-API-Schlüssel für die Grundfunktionen“ nicht als
+Zusage, dass auch der Tunnel ohne Runtime-Key eingerichtet werden kann.
+
 Voraussetzung: **Python ab 3.13**.
 
 ```bash

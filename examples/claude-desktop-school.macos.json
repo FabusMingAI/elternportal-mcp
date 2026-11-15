@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "elternportal": {
+      "command": "/Users/DEIN_NAME/elternportal-mcp/.venv/bin/python",
+      "args": [
+        "-m",
+        "elternportal_mcp",
+        "--config",
+        "/Users/DEIN_NAME/.config/elternportal-mcp/config.json"
+      ],
+      "env": {
+        "SCHOOL_ONE_PASSWORD": "REPLACE_IN_PRIVATE_CLIENT_CONFIG_ONLY"
+      }
+    }
+  }
+}

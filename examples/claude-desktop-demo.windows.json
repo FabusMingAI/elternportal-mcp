@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "elternportal": {
+      "command": "C:\\Users\\DEIN_NAME\\elternportal-mcp\\.venv\\Scripts\\python.exe",
+      "args": [
+        "-m",
+        "elternportal_mcp",
+        "--demo"
+      ]
+    }
+  }
+}

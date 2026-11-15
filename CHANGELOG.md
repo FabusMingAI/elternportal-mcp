@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — documentation
+
+Add German setup guides for Claude Desktop (macOS/Windows) and ChatGPT web via
+Secure MCP Tunnel. Include four Claude demo/school JSON templates, explicit
+account and secret handling, demo connection checks and troubleshooting.
+Link both guides from README and the German overview. No runtime change.
+
 ## 0.2.0 — 2026-11-15
 
 Adds 22 tools for HA feature parity: automatic receipt/poll tasks, evidence-backed
