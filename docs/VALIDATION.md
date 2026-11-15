@@ -5,7 +5,7 @@
 Date: 2026-11-15. Local platform: Linux aarch64, Python 3.13.5.
 
 - 76 automated tests passed, including 42-tool stdio discovery.
-- Statement coverage: 86%, including MCP and PDF subprocesses.
+- Statement coverage: 87%, including MCP and PDF subprocesses.
 - Real MCP sampling-callback test covers analysis and summary translation.
 - Additional tests cover automatic receipt/poll tasks, read/unread changes,
   whitespace-stable fingerprints, source-quote validation, preservation of user

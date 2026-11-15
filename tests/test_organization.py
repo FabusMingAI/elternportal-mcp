@@ -52,7 +52,7 @@ def test_rules_avoid_invalid_dates_and_infer_school_year():
     assert rules("Info", "Bitte 999999999999999999999 Euro überweisen.", date.today()).tasks == []
 
 
-async def test_auto_tasks_receipts_polls_and_idempotency(live_service):
+async def test_auto_tasks_receipts_polls_and_idempotency(live_service, monkeypatch):
     service, backend = live_service
     item = copy.deepcopy(backend.value["children"][0]["items"][0])
     item.update(
@@ -64,6 +64,7 @@ async def test_auto_tasks_receipts_polls_and_idempotency(live_service):
     assert any(t.get("type") == "receipt" for t in before)
     assert any(t.get("type") == "poll" for t in before)
     assert any(t.get("amount_cents") == 1250 for t in before)
+    monkeypatch.setattr("elternportal_mcp.organizer.now", lambda: "2099-12-31T23:59:59+00:00")
     await service.snapshot("testschool")
     assert service.store.tasks("testschool:1") == before
     backend.value["children"][0]["items"][0]["meta"]["empfang_bestaetigt"] = True

@@ -187,26 +187,40 @@ class Organizer:
         existing = self.store.get("tasks", key)
         if existing is None and not pending:
             return
-        row = existing or {
-            "id": key,
-            "child_id": child["id"],
-            "source_item_id": item["id"],
-            "title": (
-                "Empfang im Portal bestätigen: " if action == "receipt" else "Umfrage beantworten: "
-            )
-            + item["title"],
-            "due": due[:10] if due else None,
-            "type": action,
-            "created_at": now(),
-            "local_only": True,
-            "origin": "portal",
-            "status": "open",
-        }
+        row = (
+            copy.deepcopy(existing)
+            if existing
+            else {
+                "id": key,
+                "child_id": child["id"],
+                "source_item_id": item["id"],
+                "title": (
+                    "Empfang im Portal bestätigen: "
+                    if action == "receipt"
+                    else "Umfrage beantworten: "
+                )
+                + item["title"],
+                "due": due[:10] if due else None,
+                "type": action,
+                "created_at": now(),
+                "local_only": True,
+                "origin": "portal",
+                "status": "open",
+            }
+        )
         # Only observed completion auto-completes a task. A user's local done state
         # is never silently reopened by a polling cycle.
         if not pending:
             row["status"] = "done"
-        row.update(portal_pending=pending, updated_at=now())
+        row["portal_pending"] = pending
+        if not row.get("user_modified"):
+            row["due"] = due[:10] if due else None
+            row["title"] = (
+                "Empfang im Portal bestätigen: " if action == "receipt" else "Umfrage beantworten: "
+            ) + item["title"]
+        if existing and row == existing:
+            return
+        row["updated_at"] = now()
         self.store.put("tasks", key, row)
 
     def save_analysis(self, item: dict, raw: dict, *, method: str, apply: bool = False) -> dict:
