@@ -1,0 +1,8 @@
+# Generic example for clients using [mcp_servers.NAME] TOML sections.
+# Adapt paths and use your client's private environment/secrets mechanism.
+[mcp_servers.elternportal]
+command = "/absolute/path/elternportal-mcp/.venv/bin/elternportal-mcp"
+args = ["--config", "/absolute/path/private/config.json"]
+
+[mcp_servers.elternportal.env]
+SCHOOL_ONE_PASSWORD = "REPLACE_IN_PRIVATE_CLIENT_CONFIG_ONLY"

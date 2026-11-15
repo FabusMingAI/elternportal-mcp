@@ -1,0 +1,13 @@
+{
+  "schools": [
+    {
+      "school": "myschool",
+      "username": "parent@example.invalid",
+      "password_env": "SCHOOL_ONE_PASSWORD"
+    }
+  ],
+  "cache_ttl_seconds": 900,
+  "lookback_days": 120,
+  "request_timeout_seconds": 30,
+  "allow_pdf_downloads": false
+}

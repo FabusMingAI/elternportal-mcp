@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "elternportal": {
+      "command": "/absolute/path/elternportal-mcp/.venv/bin/elternportal-mcp",
+      "args": ["--config", "/absolute/path/private/config.json"],
+      "env": {
+        "SCHOOL_ONE_PASSWORD": "REPLACE_IN_PRIVATE_CLIENT_CONFIG_ONLY"
+      }
+    }
+  }
+}

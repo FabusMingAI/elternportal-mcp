@@ -1,0 +1,47 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "elternportal-mcp-bavaria"
+version = "0.1.0"
+description = "Local MCP server for Eltern-Portal: children, messages, timetables, calendars and tasks"
+readme = "README.md"
+requires-python = ">=3.13"
+license = "MIT"
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
+authors = [{name = "FabusMingAI and contributors"}]
+keywords = ["mcp", "elternportal", "bavaria", "school", "model-context-protocol"]
+dependencies = ["mcp>=1.25,<2", "pyelternportal==0.0.28", "pypdf>=6,<7"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "pytest-asyncio>=1,<2", "pytest-cov>=6,<8", "ruff>=0.14,<1", "build>=1,<2"]
+
+[project.scripts]
+elternportal-mcp = "elternportal_mcp.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/FabusMingAI/elternportal-mcp"
+Issues = "https://github.com/FabusMingAI/elternportal-mcp/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/elternportal_mcp"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+exclude = ["src/elternportal_mcp/vendor"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP", "B", "ASYNC"]
+
+[tool.coverage.run]
+source = ["elternportal_mcp"]
+patch = ["subprocess"]
+parallel = true
